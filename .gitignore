@@ -73,3 +73,12 @@ tests/
 # TacSL sensor
 **/tactile_record/*
 **/gelsight_r15_data/*
+
+# ATS_Mechanics heavy assets (excluded intentionally)
+ATS_Mechanics/**/meshes/
+ATS_Mechanics/**/*.usd
+ATS_Mechanics/**/*.usda
+ATS_Mechanics/**/*.usdc
+ATS_Mechanics/**/*.obj
+ATS_Mechanics/**/*.stl
+
