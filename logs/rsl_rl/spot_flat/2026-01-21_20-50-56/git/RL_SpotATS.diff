@@ -1,0 +1,62 @@
+--- git status ---
+On branch master
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   scripts/list_envs.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	source/RL_SpotATS/RL_SpotATS/assets/
+	source/RL_SpotATS/RL_SpotATS/tasks/manager_based/spot_ats_velocity/
+
+no changes added to commit (use "git add" and/or "git commit -a") 
+
+
+--- git diff ---
+diff --git a/scripts/list_envs.py b/scripts/list_envs.py
+index ea6c81d..5992328 100644
+--- a/scripts/list_envs.py
++++ b/scripts/list_envs.py
+@@ -21,7 +21,9 @@ from isaaclab.app import AppLauncher
+ 
+ # add argparse arguments
+ parser = argparse.ArgumentParser(description="List Isaac Lab environments.")
+-parser.add_argument("--keyword", type=str, default=None, help="Keyword to filter environments.")
++parser.add_argument(
++    "--keyword", type=str, default=None, help="Keyword to filter environments."
++)
+ # parse the arguments
+ args_cli = parser.parse_args()
+ 
+@@ -33,9 +35,8 @@ simulation_app = app_launcher.app
+ """Rest everything follows."""
+ 
+ import gymnasium as gym
+-from prettytable import PrettyTable
+-
+ import RL_SpotATS.tasks  # noqa: F401
++from prettytable import PrettyTable
+ 
+ 
+ def main():
+@@ -52,9 +53,17 @@ def main():
+     index = 0
+     # acquire all Isaac environments names
+     for task_spec in gym.registry.values():
+-        if "Template-" in task_spec.id and (args_cli.keyword is None or args_cli.keyword in task_spec.id):
++        # if "Template-" in task_spec.id and (args_cli.keyword is None or args_cli.keyword in task_spec.id):
++        if args_cli.keyword is None or args_cli.keyword in task_spec.id:
+             # add details to table
+-            table.add_row([index + 1, task_spec.id, task_spec.entry_point, task_spec.kwargs["env_cfg_entry_point"]])
++            table.add_row(
++                [
++                    index + 1,
++                    task_spec.id,
++                    task_spec.entry_point,
++                    task_spec.kwargs["env_cfg_entry_point"],
++                ]
++            )
+             # increment count
+             index += 1
+ 

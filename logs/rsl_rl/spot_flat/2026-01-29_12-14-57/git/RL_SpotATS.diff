@@ -1,0 +1,19 @@
+--- git status ---
+On branch dev
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    source/RL_SpotATS/RL_SpotATS/assets/usd/spot_usd.usd
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	source/RL_SpotATS/RL_SpotATS/assets/usd/spot_ats.usd
+
+no changes added to commit (use "git add" and/or "git commit -a") 
+
+
+--- git diff ---
+diff --git a/source/RL_SpotATS/RL_SpotATS/assets/usd/spot_usd.usd b/source/RL_SpotATS/RL_SpotATS/assets/usd/spot_usd.usd
+deleted file mode 100644
+index 1c6040f..0000000
+Binary files a/source/RL_SpotATS/RL_SpotATS/assets/usd/spot_usd.usd and /dev/null differ

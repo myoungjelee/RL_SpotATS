@@ -55,8 +55,11 @@ _build
 
 # RL-Games
 **/runs/*
-**/logs/*
+# **/logs/*
 **/recordings/*
+
+# Ignore RL checkpoints
+**/*.pt
 
 # Pre-Trained Checkpoints
 /.pretrained_checkpoints/

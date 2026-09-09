@@ -1,0 +1,35 @@
+--- git status ---
+On branch dev
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   .gitignore
+	deleted:    source/RL_SpotATS/RL_SpotATS/assets/usd/spot_usd.usd
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	RL Debugging Playbook.md
+	auto_play.sh
+	auto_train.sh
+
+no changes added to commit (use "git add" and/or "git commit -a") 
+
+
+--- git diff ---
+diff --git a/.gitignore b/.gitignore
+index 559c3bc..7afb58e 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -9,7 +9,7 @@
+ **/.thumbs
+ 
+ # No USD files allowed in the repo
+-#**/*.usd
++**/*.usd
+ **/*.usda
+ **/*.usdc
+ **/*.usdz
+diff --git a/source/RL_SpotATS/RL_SpotATS/assets/usd/spot_usd.usd b/source/RL_SpotATS/RL_SpotATS/assets/usd/spot_usd.usd
+deleted file mode 100644
+index 1c6040f..0000000
+Binary files a/source/RL_SpotATS/RL_SpotATS/assets/usd/spot_usd.usd and /dev/null differ

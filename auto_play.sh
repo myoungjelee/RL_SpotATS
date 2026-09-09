@@ -7,7 +7,7 @@ set -euo pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ISAACLAB_SH="$HOME/IsaacLab/isaaclab.sh"
 source "$HOME/miniconda3/etc/profile.d/conda.sh"
-conda activate sim
+conda activate isaac
 
 # 기본 설정
 DEFAULT_TASK="SpotATS-Velocity-Flat-v0"

@@ -1,0 +1,459 @@
+--- git status ---
+On branch dev
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   README.md
+	modified:   auto_play.sh
+	modified:   auto_train.sh
+
+no changes added to commit (use "git add" and/or "git commit -a") 
+
+
+--- git diff ---
+diff --git a/README.md b/README.md
+index cba2898..14c8669 100644
+--- a/README.md
++++ b/README.md
+@@ -1,9 +1,16 @@
+-# RL_SpotATS – Isaac Lab 기반 Spot ATS 강화학습 프로젝트
++# RL_SpotATS (Reinforcement Learning Portfolio Repository)
+ 
+-> **이 저장소는 실행용 배포물이 아니라, 로봇 강화학습 실험을 설계·구현·운영한 과정을 정리한 포트폴리오용 레포지토리입니다.**
++> **요약**
+ >
+-> 용량/라이선스/재현성 문제로 인해 **USD 자산, 대형 로그, 체크포인트 파일은 Git에 포함되지 않습니다**.
+-> (자세한 제외 항목은 `.gitignore` 참고)
++> 이 프로젝트는 보행 성능 자체를 극대화하는 것이 아니라,
++> **강화학습 실험 과정에서의 관찰 → 해석 → 설정 조정 → 유지/재학습 판단**까지의
++> 의사결정 흐름을 **로그와 설정 기반으로 설명할 수 있는지**를 증명하기 위한 포트폴리오입니다.
++>
++> **본 저장소는 실행용 배포물이 아니라, 로봇 강화학습 실험을**
++> **설계·구현·운영한 과정을 정리한 포트폴리오용 레포지토리입니다.**
++>
++> 용량 / 라이선스 / 재현성 문제로 인해
++> **USD 자산, 대형 로그, 학습 체크포인트는 Git에 포함하지 않습니다.**
+ 
+ ---
+ 
+@@ -13,134 +20,172 @@
+ 사족보행 로봇(Spot 계열)에 **ATS(Auto Targeting System)** 동작을 결합한
+ 강화학습 실험 프로젝트입니다.
+ 
+-이 프로젝트의 목적은:
++이 프로젝트의 핵심 목적은 다음을 검증하는 데 있습니다.
+ 
+ - Isaac Lab의 **Extension 기반 구조**를 이해하고
+-- 원본 코드를 수정하지 않은 상태에서
++- 원본 Isaac Lab / Isaac Sim 소스를 수정하지 않은 상태에서
+ - **Task / Env / Reward / Agent 설정을 분리 설계**하여
+-- 하나의 RL 실험을 끝까지 감당할 수 있는지 검증하는 것
++- 하나의 강화학습 실험을 처음부터 끝까지 **운영·관리·판단**할 수 있는지
+ 
+ 즉,
+ 
+-> *"잘 걷게 만들기"*가 아니라
+-> _"Isaac Lab 기반 RL 실험을 실무적으로 설계·운영할 수 있는가"_
++> _“보행 성능을 과시하는 것”이 아니라_
++> **“Isaac Lab 기반 강화학습 실험을 실무적으로 감당할 수 있는가”**
+ > 를 증명하기 위한 프로젝트입니다.
+ 
+ ---
+ 
+-## 🧠 핵심 설계 포인트
++## 🧠 프로젝트 성격 요약
++
++- 새로운 강화학습 알고리즘을 제안하는 연구 프로젝트 ❌
++- 튜토리얼 코드를 그대로 복사한 예제 프로젝트 ❌
++- 실험 구조 · 실행 흐름 · 결과 해석에 초점을 둔 **설계·운영 중심 프로젝트** ✅
++
++---
++
++## 🚫 이 프로젝트가 의도적으로 증명하지 않는 것
++
++본 프로젝트는 다음 항목을 **의도적으로 목표로 하지 않습니다.**
++
++- SOTA(State-of-the-Art) 보행 성능 달성
++- 실기체 로봇 적용 완료
++- 강화학습 알고리즘 자체의 신규 제안
++- 복잡한 제어기(WBC/MPC) 직접 구현
+ 
+-### 1. Extension 중심 아키텍처
++대신, **신입~주니어 강화학습 엔지니어 관점에서**
+ 
+-- 본 프로젝트는 **Python 패키지 중심 구조가 아닌**
+-  **Isaac Sim Extension 기반 구조**로 설계됨
+-- `source/RL_SpotATS/` 아래에 `extension.toml`을 두고
+-  Task / Asset / Config를 Extension 단위로 관리
+-- 그 결과:
+-  - `pip install -e .` 없이도
+-  - Isaac Lab 런처(`isaaclab.sh`)를 통해 Task 자동 등록 가능
++- 어떤 실험 단위를 분리해야 하는지
++- 어떤 지표를 통해 학습 상태를 판단해야 하는지
++- 언제 재학습이 필요하고, 언제 설정 조정으로 충분한지
+ 
+-👉 **Isaac Lab 설치 이후에는 별도 editable install 없이 동작**
++를 **로그와 설정을 근거로 설명하고**,
++**정책을 버릴지 / 유지할지 / 재학습할지를 판단할 수 있는지**에 초점을 둡니다.
+ 
+ ---
+ 
+-### 2. Task 단위 실험 분리
++## 🏗️ 핵심 설계 포인트
++
++### 1. Isaac Sim Extension 기반 구조
+ 
+-강화학습 실험의 최소 단위를 **Task**로 정의:
++- 본 프로젝트는 **Isaac Sim Extension 기반 구조**로 설계되었습니다.
++- `source/RL_SpotATS/` 하위에 `extension.toml`을 두고
++  Task / Asset / Config를 Extension 단위로 관리합니다.
++- Isaac Lab 런처(`isaaclab.sh`)를 통해 Task를 자동 등록 및 실행할 수 있습니다.
+ 
++---
++
++### 2. Task 단위 실험 분리
++
++- 강화학습 실험의 최소 단위를 **Task**로 정의
+ - 각 Task는 하나의 실험 가설을 의미
+-- 보상 함수, 관측 공간, 이벤트 로직을 Task 내부에서만 변경
+-- 기존 locomotion 구조를 유지한 상태에서
+-  **ATS 관련 행동 유도만 추가**
++- 기본 locomotion 구조를 유지한 채 ATS 관련 행동 유도 로직만 추가
+ 
+ ```text
+ spot_ats_velocity/
+-├─ flat_env_cfg.py    # 환경/관측/액션 설정
+-├─ mdp/rewards.py    # 보상 함수 설계
+-├─ mdp/events.py     # 에피소드 이벤트 정의
+-└─ agents/            # PPO 설정 (RSL-RL / SKRL)
++├─ flat_env_cfg.py
++├─ mdp/
++│  ├─ rewards.py
++│  └─ events.py
++└─ agents/
+ ```
+ 
+ ---
+ 
+-### 3. 실험 재현을 고려한 로그 구조
+-
+-실험 결과는 **코드가 아니라 로그/설정/차이(diff)**로 남김:
++### 3. 커스텀 로봇 자산 적용
+ 
+-- `logs/rsl_rl/...`
+-  - 학습 모델 체크포인트
+-  - TensorBoard 이벤트
+-  - ONNX / Torch 정책 export
++- Isaac Lab 기본 Spot 자산을 그대로 사용하지 않고
++- ATS 구조에 맞게 수정된 **Spot ATS USD 자산** 사용
++- 자산 자체 설계가 아닌, **자산 파이프라인 이해 및 관리 경험**에 목적
+ 
+-- `logs/.../params/*.yaml`
+-  - 실제 학습에 사용된 Env / Agent 설정 스냅샷
++---
+ 
+-- `logs/.../git/*.diff`
+-  - 해당 실험 시점의 코드 변경 사항
++### 4. 로그 중심의 실험 관리 전략
+ 
+-👉 *"이 실험에서 뭐가 달랐는지"*를
+-**파일 구조만 보고도 추적 가능**하게 설계
++- 코드 변경이 아니라 **설정(Config)과 로그(Log)** 차이로 실험 결과를 관리
++- 학습 설정 스냅샷, git diff, TensorBoard 로그를 통해 실험 추적
++- 동일 Task 내에서 reward / event / parameter 변경에 따른 거동 비교 가능
+ 
+ ---
+ 
+-## 📁 레포지토리 구성 (요약)
++## 🔍 실험 사례: Gait 이상 현상 분석
+ 
+-```text
+-RL_SpotATS/
+-├─ scripts/          # 실행/테스트 스크립트 (train, play, zero-agent)
+-├─ source/           # Isaac Sim Extension (실제 코드)
+-│  └─ RL_SpotATS/
+-│     ├─ assets/     # 로봇/씬 정의 (USD는 Git 제외)
+-│     └─ tasks/      # 강화학습 Task 구현
+-├─ logs/             # (Git 제외) 학습 결과/모델/설정
+-├─ outputs/          # (Git 제외) Hydra 런 로그
+-└─ README.md
+-```
++### 관찰 (Observation)
++
++ATS 동작 통합 이후, 보행이 시각적으로 불안정해 보이는 현상이 관찰되었습니다.
++
++### 분석 기준 (Analysis)
++
++- TensorBoard 상 velocity tracking, contact timing 지표 확인
++- 발 접지 비율(duty factor) 변화 여부 비교
++- 학습 초반 대비 reward trend 안정성 검토
++
++### 판단 (Decision)
++
++그 결과, 해당 현상은 **policy collapse에 의한 학습 실패가 아니라**
++**reward weight 변화로 인한 duty factor 변화**로 판단하였습니다.
++
++### 조치 (Action)
++
++정책을 폐기하거나 재학습하지 않고,
++설정 변경 및 실험 로그 비교를 통해 **정책을 유지**하는 결정을 내렸습니다.
++
++이 사례는 다음을 의도적으로 보여주기 위한 것입니다.
++
++- 시각적 인상만으로 정책을 판단하지 않음
++- 로그 기반으로 재학습 여부를 결정함
++- 강화학습 실험을 **운영 관점에서 통제**함
+ 
+ ---
+ 
+-## 🚫 Git에 포함되지 않는 항목
++## 🔬 확장 가능한 분석 프레임: Reward Sensitivity Analysis
++
++본 프로젝트는 **Reward 설계가 로봇 거동에 미치는 영향**을 이해하기 위해,
++다음과 같은 확장 가능한 분석 프레임을 고려합니다.
++
++- 특정 reward 항목(예: gait, velocity tracking, stability)의 weight 단계적 변경
++- velocity tracking 성능과 보행 안정성 간의 trade-off 관찰
++- 시뮬레이션 환경에서의 과도한 exploitation 가능성 검토
+ 
+-이 레포지토리는 **결과물 저장소가 아님**을 명확히 하기 위해
+-다음 항목들을 의도적으로 제외합니다:
++이 프레임은 실제 수행 여부와 무관하게,
+ 
+-- USD / USDC / USDT 등 시뮬 자산
+-- 학습 로그, 체크포인트, 영상, TensorBoard 데이터
+-- Docker 아티팩트, 대형 바이너리
++- reward 변화가 거동에 어떤 방향의 영향을 주는지
++- 로그를 통해 이를 어떻게 해석하고 판단해야 하는지
+ 
+-이는 `.gitignore`에 명시적으로 관리되고 있으며,
+-**"실험 결과를 어떻게 관리했는가" 자체가 설계 포인트**입니다.
++를 설명할 수 있는 **사고 구조를 제시**하는 데 목적이 있습니다.
+ 
+ ---
+ 
+-## 📌 이 프로젝트로 어필하고 싶은 것
++## ▶️ 실험 실행 방식 (요약)
+ 
+-- Isaac Lab / Isaac Sim 기반 **Extension 구조 이해도**
+-- 강화학습 실험에서
+-  - Task 분리
+-  - Reward 설계
+-  - 설정/로그 관리
+-    를 **구조적으로 접근한 경험**
++```bash
++./auto_train.sh
++./auto_play.sh
++```
+ 
+-- "코드를 많이 짰다"가 아니라
+-  **"실험을 통제 가능한 형태로 운영했다"**는 점
++- 반복 실험을 고려한 자동 실행 스크립트 구성
++- 실행 흐름 설명 목적 (재현 강요용 아님)
++
++---
++
++## 📌 이 프로젝트로 어필하고 싶은 역량
++
++- Isaac Lab / Isaac Sim 기반 **Extension 구조 이해도**
++- 강화학습 실험에서의 Task 분리, 설정 관리, 로그 기반 분석 경험
++- **강화학습 실험을 통제 가능한 형태로 운영한 경험**
+ 
+ ---
+ 
+ ## 🔚 정리
+ 
+ 이 레포지토리는:
+-s
+ 
+-- ✔ 바로 실행하라고 만든 예제도 아니고
+-- ✔ 결과 파일을 잔뜩 올린 저장소도 아니며
+-- ✔ 튜토리얼 복붙 프로젝트도 아닙니다
++- ✔ 실행 예제가 아니라
++- ✔ 결과물 저장소가 아니라
++- ✔ 튜토리얼 복붙 프로젝트도 아닙니다.
+ 
+ 대신,
+ 
+ > **Isaac Lab 기반 로봇 강화학습 실험을
+-> 처음부터 끝까지 설계하고 관리할 수 있는지**
++> 처음부터 끝까지 설계하고 판단하며 운영할 수 있는지**
+ 
+-를 설명하기 위한 **설계 중심 포트폴리오**입니다.
+-
+----
++를 설명하기 위한 **설계·운영 중심 포트폴리오**입니다.
+diff --git a/auto_play.sh b/auto_play.sh
+index 0ab40e2..d7684a4 100755
+--- a/auto_play.sh
++++ b/auto_play.sh
+@@ -1,18 +1,56 @@
+ #!/usr/bin/env bash
+ set -euo pipefail
+ 
++# ==============================================================================
++# [1] PARAMETER SETTINGS (여기만 수정하세요)
++# ==============================================================================
++# # 환경 및 경로 설정
+ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+-
++ISAACLAB_SH="$HOME/IsaacLab/isaaclab.sh"
+ source "$HOME/miniconda3/etc/profile.d/conda.sh"
+ conda activate sim
+ 
+-ISAACLAB_SH="$HOME/IsaacLab/isaaclab.sh"
++# # 타겟 모델 식별 (학습 로그 폴더 기준)
++EXP_NAME="spot_flat"
++GAIT_WEIGHT=6.0
++RUN_TAG="gait_w${GAIT_WEIGHT//./p}"   # 예: gait_w6p0
++
++# # 추론 설정
++NUM_ENVS=4              # 테스트용 로봇 개수 (보통 소량)
++USE_GUI=true            # true: 창 띄움 / false: headless
++
++# # 불러올 체크포인트 설정
++# # 학습 시 생성된 타임스탬프 포함 전체 폴더명을 적어주세요.
++LOAD_RUN_DIR="2026-01-31_10-54-59_gait_w6p0" 
++CHECKPOINT="model_2999.pt"
++
++# ==============================================================================
++# [2] ARGUMENT ASSEMBLY (인자 조합 로직)
++# ==============================================================================
++# # 기본 옵션 바구니
++OPTS=(
++    --task "SpotATS-Velocity-Flat-v0"
++    --experiment_name "$EXP_NAME"
++    --load_run "$LOAD_RUN_DIR"
++    --checkpoint "$CHECKPOINT"
++    --num_envs "$NUM_ENVS"
++)
++
++# # GUI 사용 여부 결정
++if [ "$USE_GUI" = false ]; then
++    OPTS+=(--headless)
++fi
+ 
+-# 원하는 체크포인트로 바꿔서 쓰면 됨
+-#CHECKPOINT="$PROJECT_ROOT/logs/rsl_rl/spot_flat/2026-01-29_21-41-54/model_9999.pt"
++# ==============================================================================
++# [3] EXECUTION (실행 및 출력)
++# ==============================================================================
++echo "=================================================="
++echo "  🕹️ Isaac Lab Play Mode"
++echo "=================================================="
++echo "  📍 Task       : SpotATS-Velocity-Flat-v0"
++echo "  📂 Load From  : logs/rsl_rl/$EXP_NAME/$LOAD_RUN_DIR"
++echo "  🎯 Checkpoint : $CHECKPOINT"
++echo "  🖥️  GUI Mode   : $USE_GUI"
++echo "=================================================="
+ 
+-"$ISAACLAB_SH" -p "$PROJECT_ROOT/scripts/rsl_rl/play.py" \
+-  --task SpotATS-Velocity-Flat-v0 \
+-  --headless \
+-  #--num_envs=1 \
+-  #--checkpoint "$CHECKPOINT"
++"$ISAACLAB_SH" -p "$PROJECT_ROOT/scripts/rsl_rl/play.py" "${OPTS[@]}"
+\ No newline at end of file
+diff --git a/auto_train.sh b/auto_train.sh
+index ca21dd1..11e16e4 100755
+--- a/auto_train.sh
++++ b/auto_train.sh
+@@ -1,35 +1,69 @@
+ #!/usr/bin/env bash
+ set -euo pipefail
+ 
+-# --- 프로젝트 루트 기준(이 스크립트가 있는 위치)로 경로 고정 ---
++# ==============================================================================
++# [1] PARAMETER SETTINGS (여기만 수정하세요)
++# ==============================================================================
++# # 환경 및 경로
+ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+-
+-# --- conda 활성화 (비-인터랙티브 쉘에선 이게 없으면 conda activate가 안 먹힘) ---
++ISAACLAB_SH="$HOME/IsaacLab/isaaclab.sh"
+ source "$HOME/miniconda3/etc/profile.d/conda.sh"
+ conda activate sim
+ 
+-# --- IsaacLab 런처 위치(명제님 환경 기준) ---
+-ISAACLAB_SH="$HOME/IsaacLab/isaaclab.sh"
++# # 실험 식별 (WandB/Folder 명칭)
++EXP_NAME="spot_flat"
++GAIT_WEIGHT=14.0
++SEED=42
++RUN_TAG="gait_w${GAIT_WEIGHT//./p}"
++
++# # 학습 스케줄 및 리소스
++NUM_ENVS=4096
++SAVE_INTERVAL=50
++INITIAL_ITERS=3000
++
++# # 이어하기(Resume) 제어
++RESUME=false            # true: 이어하기 / false: 신규 학습
++RESUME_ITERS=6000       # 이어하기 활성 시 적용될 목표 iterations
++LOAD_RUN="$RUN_TAG"     # 불러올 이전 실험 태그
++CHECKPOINT="model_2999.pt"
++
++# ==============================================================================
++# [2] ARGUMENT ASSEMBLY (인자 조합 로직)
++# ==============================================================================
++# # 목표 반복 횟수 결정
++CURRENT_MAX_ITERS=$INITIAL_ITERS
++if [ "$RESUME" = true ]; then
++    CURRENT_MAX_ITERS=$RESUME_ITERS
++fi
++
++# # 기본 옵션 바구니
++OPTS=(
++    --task "SpotATS-Velocity-Flat-v0"
++    --experiment_name "$EXP_NAME"
++    --run_name "$RUN_TAG"
++    --seed "$SEED"
++    --max_iterations "$CURRENT_MAX_ITERS"
++    --num_envs "$NUM_ENVS"
++    --headless
++    # --logger "wandb"            # wandb 바로 연동하고싶을때
++    --log_project_name "SpotATS"
++)
++
++# # 하이드라(Hydra) 오버라이드
++HYDRA_OPTS=(
++    agent.save_interval="$SAVE_INTERVAL"
++    env.rewards.gait.weight="$GAIT_WEIGHT"
++)
++
++# # 이어하기 옵션 추가
++if [ "$RESUME" = true ]; then
++    OPTS+=(--resume --load_run "$LOAD_RUN" --checkpoint "$CHECKPOINT")
++fi
++
++# ==============================================================================
++# [3] EXECUTION (실행 및 출력)
++# ==============================================================================
++echo ">> [MODE] $( [ "$RESUME" = true ] && echo "RESUME" || echo "NEW" )"
++echo ">> Running: $EXP_NAME / $RUN_TAG (Target: $CURRENT_MAX_ITERS iters)"
+ 
+-# --- 실행 ---
+-"$ISAACLAB_SH" -p "$PROJECT_ROOT/scripts/rsl_rl/train.py" \
+-  --task SpotATS-Velocity-Flat-v0 \
+-  --headless \
+-  agent.max_iterations=1000 \
+-  agent.save_interval=50 \
+-  agent.experiment_name=spot_flat \
+-  env.scene.num_envs=4096 \
+-  hydra.run.dir="$PROJECT_ROOT/logs/rsl_rl/spot_flat"
+-
+-
+-# -- 이어서 실행 --
+-# "$ISAACLAB_SH" -p "$PROJECT_ROOT/scripts/rsl_rl/train.py" \
+-#     --task SpotATS-Velocity-Flat-v0 \
+-#     --headless \
+-#     --resume \
+-#     --load_run "2026-01-29_19-51-41" \
+-#     --checkpoint "model_999.pt" \s
+-#     --max_iterations 10000 \
+-#     agent.save_interval=50 \
+-#     agent.experiment_name="spot_flat" \
+-#     env.scene.num_envs=4096
+\ No newline at end of file
++"$ISAACLAB_SH" -p "$PROJECT_ROOT/scripts/rsl_rl/train.py" "${OPTS[@]}" "${HYDRA_OPTS[@]}"
+\ No newline at end of file

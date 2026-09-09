@@ -8,14 +8,14 @@ set -euo pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ISAACLAB_SH="$HOME/IsaacLab/isaaclab.sh"
 source "$HOME/miniconda3/etc/profile.d/conda.sh"
-conda activate sim
+conda activate isaac
 
 # # 실험 식별 (WandB/Folder 명칭)
 EXP_NAME="spot_flat"
 SEED=42
 
 # 실험 타입: baseline / fix
-EXP_VARIANT="fix" 
+EXP_VARIANT="fix"
 
 # #  PARAMETER SETTINGS (여기만 수정하세요)
 GAIT_WEIGHT=14.0
@@ -34,7 +34,7 @@ SAVE_INTERVAL=50
 INITIAL_ITERS=3000
 
 # # 이어하기(Resume) 제어
-RESUME=true              # true: 이어하기 / false: 신규 학습
+RESUME=false              # true: 이어하기 / false: 신규 학습
 RESUME_ITERS=5000       # 추가 학습 횟수 (기존(10000) + 5000 = 15000 종료)
 LOAD_RUN="2026-02-02_10-28-42_gait_w14p0_fix13"     # 불러올 이전 실험 태그
 CHECKPOINT=""            # 특정 pt파일 지정 (비우면 최신 checkpoint 자동 로드)
@@ -56,7 +56,7 @@ OPTS=(
     --seed "$SEED"
     --max_iterations "$CURRENT_MAX_ITERS"
     --num_envs "$NUM_ENVS"
-    --headless
+    # --headless
     # --logger "wandb"            # wandb 바로 연동하고싶을때
     --log_project_name "SpotATS"
 )

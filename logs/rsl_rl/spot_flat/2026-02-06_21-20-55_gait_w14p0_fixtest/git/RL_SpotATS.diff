@@ -1,0 +1,42 @@
+--- git status ---
+On branch dev
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   auto_train.sh
+
+no changes added to commit (use "git add" and/or "git commit -a") 
+
+
+--- git diff ---
+diff --git a/auto_train.sh b/auto_train.sh
+index b0ff411..fbff59d 100755
+--- a/auto_train.sh
++++ b/auto_train.sh
+@@ -26,7 +26,7 @@ ACTION_SMOOTHNESS_WEIGHT=-1.8
+ JOINT_ACC_WEIGHT=-1e-3
+ STILL_SCALE=15.0
+ STILL_THRESH=0.04
+-RUN_TAG="gait_w${GAIT_WEIGHT//./p}_${EXP_VARIANT}14"
++RUN_TAG="gait_w${GAIT_WEIGHT//./p}_${EXP_VARIANT}test"
+ 
+ # # 학습 스케줄 및 리소스
+ NUM_ENVS=4096
+@@ -34,7 +34,7 @@ SAVE_INTERVAL=50
+ INITIAL_ITERS=3000
+ 
+ # # 이어하기(Resume) 제어
+-RESUME=true              # true: 이어하기 / false: 신규 학습
++RESUME=false              # true: 이어하기 / false: 신규 학습
+ RESUME_ITERS=5000       # 추가 학습 횟수 (기존(10000) + 5000 = 15000 종료)
+ LOAD_RUN="2026-02-02_10-28-42_gait_w14p0_fix13"     # 불러올 이전 실험 태그
+ CHECKPOINT=""            # 특정 pt파일 지정 (비우면 최신 checkpoint 자동 로드)
+@@ -56,7 +56,7 @@ OPTS=(
+     --seed "$SEED"
+     --max_iterations "$CURRENT_MAX_ITERS"
+     --num_envs "$NUM_ENVS"
+-    --headless
++    # --headless
+     # --logger "wandb"            # wandb 바로 연동하고싶을때
+     --log_project_name "SpotATS"
+ )
