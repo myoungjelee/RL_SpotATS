@@ -9,16 +9,17 @@
 > 본 저장소는 실행용 배포물이 아니라,
 > **Isaac Lab 기반 로봇 강화학습 실험을 어떻게 설계·운영·분석했는지**를 기록한 포트폴리오용 레포지토리입니다.
 >
-> 용량 / 라이선스 / 재현성 문제로 인해
-> **USD 자산, 대형 로그, 학습 체크포인트는 Git에 포함하지 않습니다.**
+> 학습 이력과 프로젝트 자산의 추적성을 위해
+> **실험 로그·체크포인트·USD/mesh 자산 일부를 Git 및 Git LFS로 보존**합니다.
+> 이 저장소의 목적은 실행 배포물이 아니라, 실험 설정과 결과의 근거를 재현 가능하게 남기는 데 있습니다.
 
 ---
 
 ## 🎯 프로젝트 개요
 
 **RL_SpotATS**는 NVIDIA **Isaac Lab + Isaac Sim** 환경에서
-사족보행 로봇(Spot 계열)에 **ATS(Auto Targeting System)** 동작을 결합한
-강화학습 실험 프로젝트입니다.
+Isaac Lab의 **Spot locomotion reference task**를 기반으로 Spot 로봇에 ATS(Auto Targeting System) 기구 자산을 결합하고,
+외부 프로젝트 형태로 task·asset·실험 파이프라인을 확장한 강화학습 실험 프로젝트입니다.
 
 이 프로젝트의 핵심 목적은 다음 질문에 답하는 것입니다.
 
@@ -28,7 +29,7 @@
 
 - Isaac Lab **외부 프로젝트 구조(비침투 방식)**를 사용하고
 - 원본 Isaac Lab / Isaac Sim 소스를 수정하지 않은 상태에서
-- **Task / Reward / Parameter 조합을 실험 단위로 분리**하며
+- **Task / reward·penalty / parameter 조합을 실험 단위로 분리**하며
 - 하나의 강화학습 실험을 **스윕 → 수정 → Resume 학습** 흐름으로 장기 운영합니다.
 
 보행 성능 수치 경쟁보다는,
@@ -39,13 +40,23 @@
 ## 🧠 프로젝트 성격 요약
 
 - 새로운 강화학습 알고리즘 제안 ❌
-- 튜토리얼 코드 단순 실행 ❌
+- PPO 알고리즘 자체 직접 구현 ❌
+- Isaac Lab reference task 단순 실행 ❌
 - 단기 성능 수치 과시 ❌
 - 실험 구조 설계 ⭕
 - 로그 기반 상태 해석 ⭕
 - 탐색 붕괴 / 불안정 / 수렴 구간 분리 기록 ⭕
 
 본 프로젝트는 **실험 설계·운영·판단 중심 강화학습 포트폴리오**입니다.
+
+### 검증된 실행 조건
+
+- 알고리즘: **RSL-RL의 PPO 구현 사용**
+- 병렬 학습 환경: **4096 envs**
+- Physics step: `dt=0.002` → **500 Hz**
+- Policy step: `decimation=10` → **50 Hz**
+- 실험 seed: **42 단일 seed**
+- 따라서 **multi-seed 일반화는 검증하지 않음**
 
 ---
 
@@ -56,6 +67,8 @@
 - SOTA(State-of-the-Art) 보행 성능 달성
 - 실기체 로봇 적용 완료
 - 강화학습 알고리즘 자체의 신규 제안
+- PPO 알고리즘 자체의 직접 구현
+- 다중 seed 기반 강건성 검증
 - 전통 제어기(WBC / MPC) 직접 구현
 
 대신, **신입~주니어 로봇 제어·강화학습 엔지니어 관점에서** 다음을 증명하는 데 집중합니다.
@@ -72,8 +85,9 @@
 ### 1. Isaac Lab 외부 프로젝트 구조 (비침투 방식)
 
 - 본 프로젝트는 Isaac Lab 원본을 수정하지 않는 **외부 프로젝트 구조**로 구성되었습니다.
-- 기존 Task 구현(cfg, reward, agent 구조)은 그대로 활용하되,
-  **Gym Registry를 통해 Task 이름을 분리 등록**하여 실험 단위를 독립적으로 관리합니다.
+- Isaac Lab의 Spot locomotion reference task 구조(cfg, reward, agent)를 기반으로,
+  ATS 결합 자산과 외부 task 구성을 프로젝트 경계 안에서 조정했습니다.
+- **Gym Registry를 통해 Task 이름을 분리 등록**하여 실험 단위를 독립적으로 관리합니다.
 
 이를 통해:
 
@@ -99,15 +113,15 @@ spot_ats_velocity/
 ```
 
 기본 locomotion 구조는 유지한 채,
-**ATS 관련 보상·제약 항을 점진적으로 조정**하는 방식으로 실험을 확장했습니다.
+**reward weight·negative penalty·termination 조건을 점진적으로 조정**하는 방식으로 실험을 확장했습니다.
 
 ---
 
 ### 3. 로봇 자산 관리 (구조 이해 중심)
 
 - Isaac Lab 기본 Spot 자산을 기반으로 ATS 구조가 결합된 로봇 자산을 사용합니다.
-- 실제 USD / mesh 파일은 용량·라이선스 문제로 Git에 포함하지 않습니다.
-- 대신, **자산 경로 구조, 설정 방식, 시뮬레이션 파이프라인 이해**에 초점을 둡니다.
+- ATS USD / mesh와 scene 자산 일부는 **Git LFS로 추적**합니다.
+- 저장소에서는 **자산 경로 구조, 설정 방식, 시뮬레이션 파이프라인과 실험 이력의 추적성**에 초점을 둡니다.
 
 ---
 
@@ -149,7 +163,7 @@ spot_ats_velocity/
 - 코드 수정 없이 Hydra override로 실험을 분기합니다.
 
 > 학습 자동화 스크립트는 [`auto_train.sh`](./auto_train.sh)에 정리되어 있으며,
-> reward weight, 제약 항 계수, 탐색 관련 파라미터를 **코드 수정 없이 조정하며**
+> reward weight, penalty 계수, 탐색 관련 파라미터를 **코드 수정 없이 조정하며**
 > Controlled Sweep 및 Resume 학습을 반복하기 위한 운영 도구로 사용되었습니다.
 
 ---
